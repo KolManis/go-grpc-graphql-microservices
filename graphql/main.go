@@ -28,7 +28,7 @@ func main() {
 	}
 	defer s.Close()
 
-	http.Handle("/graphql", handler.NewDefaultServer(s.ExecutableSchema()))
+	http.Handle("/graphql", handler.New(s.ToExecutableSchema()))
 	http.Handle("/playgroung", playground.Handler("KolManis", "/graphql"))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
