@@ -1,0 +1,11 @@
+services:
+  # Приложения  
+  account:
+  catalog:
+  order:
+  graphql:
+
+  # Базы данных
+  account_db:
+  catalog_db:
+  order_db:
