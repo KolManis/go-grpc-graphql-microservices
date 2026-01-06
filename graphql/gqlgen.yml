@@ -1,9 +1,12 @@
-#go run github.com/99designs/gqlgen generate
+# go run github.com/99designs/gqlgen generate      
+unable to open schema: open schema.graphql: The system cannot find the file specified.
+exit status 1
+PS D:\Study\go-grpc-graphql-microservices>
 schema: schema.graphql
 
 models:
   Account:
     model: github.com/KolManis/go-grpc-graphql-microservices/graphql.Account
     fields:
-      ordered:
+      orders:
         resolver: true 

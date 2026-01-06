@@ -39,6 +39,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Account() AccountResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -87,6 +88,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type AccountResolver interface {
+	Orders(ctx context.Context, obj *Account) ([]*Order, error)
+}
 type MutationResolver interface {
 	CreateAccount(ctx context.Context, account AccountInput) (*Account, error)
 	CreateProduct(ctx context.Context, product ProductInput) (*Product, error)
@@ -600,10 +604,10 @@ func (ec *executionContext) _Account_orders(ctx context.Context, field graphql.C
 		field,
 		ec.fieldContext_Account_orders,
 		func(ctx context.Context) (any, error) {
-			return obj.Orders, nil
+			return ec.resolvers.Account().Orders(ctx, obj)
 		},
 		nil,
-		ec.marshalNOrder2ᚕgithubᚗcomᚋKolManisᚋgoᚑgrpcᚑgraphqlᚑmicroservicesᚋgraphqlᚐOrderᚄ,
+		ec.marshalNOrder2ᚕᚖgithubᚗcomᚋKolManisᚋgoᚑgrpcᚑgraphqlᚑmicroservicesᚋgraphqlᚐOrderᚄ,
 		true,
 		true,
 	)
@@ -613,8 +617,8 @@ func (ec *executionContext) fieldContext_Account_orders(_ context.Context, field
 	fc = &graphql.FieldContext{
 		Object:     "Account",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -3018,18 +3022,49 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Account_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Account_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "orders":
-			out.Values[i] = ec._Account_orders(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Account_orders(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3810,11 +3845,7 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNOrder2githubᚗcomᚋKolManisᚋgoᚑgrpcᚑgraphqlᚑmicroservicesᚋgraphqlᚐOrder(ctx context.Context, sel ast.SelectionSet, v Order) graphql.Marshaler {
-	return ec._Order(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNOrder2ᚕgithubᚗcomᚋKolManisᚋgoᚑgrpcᚑgraphqlᚑmicroservicesᚋgraphqlᚐOrderᚄ(ctx context.Context, sel ast.SelectionSet, v []Order) graphql.Marshaler {
+func (ec *executionContext) marshalNOrder2ᚕᚖgithubᚗcomᚋKolManisᚋgoᚑgrpcᚑgraphqlᚑmicroservicesᚋgraphqlᚐOrderᚄ(ctx context.Context, sel ast.SelectionSet, v []*Order) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3838,7 +3869,7 @@ func (ec *executionContext) marshalNOrder2ᚕgithubᚗcomᚋKolManisᚋgoᚑgrpc
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNOrder2githubᚗcomᚋKolManisᚋgoᚑgrpcᚑgraphqlᚑmicroservicesᚋgraphqlᚐOrder(ctx, sel, v[i])
+			ret[i] = ec.marshalNOrder2ᚖgithubᚗcomᚋKolManisᚋgoᚑgrpcᚑgraphqlᚑmicroservicesᚋgraphqlᚐOrder(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3856,6 +3887,16 @@ func (ec *executionContext) marshalNOrder2ᚕgithubᚗcomᚋKolManisᚋgoᚑgrpc
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNOrder2ᚖgithubᚗcomᚋKolManisᚋgoᚑgrpcᚑgraphqlᚑmicroservicesᚋgraphqlᚐOrder(ctx context.Context, sel ast.SelectionSet, v *Order) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Order(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNOrderInput2githubᚗcomᚋKolManisᚋgoᚑgrpcᚑgraphqlᚑmicroservicesᚋgraphqlᚐOrderInput(ctx context.Context, v any) (OrderInput, error) {
