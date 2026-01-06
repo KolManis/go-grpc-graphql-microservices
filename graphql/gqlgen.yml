@@ -1,0 +1,9 @@
+#go run github.com/99designs/gqlgen generate
+schema: schema.graphql
+
+models:
+  Account:
+    model: github.com/KolManis/go-grpc-graphql-microservices/graphql.Account
+    fields:
+      ordered:
+        resolver: true 
