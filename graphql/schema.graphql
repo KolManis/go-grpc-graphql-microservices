@@ -29,6 +29,26 @@ type OrderedProduct {
 }
 
 input PaginationInput {
-    skip: Int # сколько записей пропустить (offset)
-    take: Int # сколько записей взять (limit)
+    skip: Int 
+    take: Int 
+}
+
+input AccountInput {
+    name: String!
+}
+
+input ProductInput {
+    name: String!
+    description: String!
+    price: Float!
+}
+
+input OrderProductInput {
+    id: String!
+    quantity: Int!
+}
+
+input OrderInput {
+    accountid: String!
+    products: [OrderProductInput!]!
 }
