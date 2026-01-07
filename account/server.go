@@ -29,7 +29,12 @@ func (s *grpcServer) PostAccount(ctx context.Context, r *pb.PostAccountRequest) 
 	if err != nil {
 		return nil,err
 	}
-	return  &pb.{}, err
+	return  &pb.PostAccountResponse{
+		Account: &pb.Account{
+			Id: a.ID,
+			Name: a.Name,
+		}
+	}, nil
 }
 
 func (s *grpcServer) GetAccount(ctx context.Context, r *pb.GetAccountRequest) (*pb.GetAccountResponse,error) {
@@ -37,12 +42,19 @@ func (s *grpcServer) GetAccount(ctx context.Context, r *pb.GetAccountRequest) (*
 	if err != nil {
 		return nil,err
 	}
-	return &pb.{}, nil
+	return &pb.GetAccountResponse{
+		Account: &pb.Account{
+			Id: a.ID,
+			Name: a.Name,
+		}
+	}, nil
 }
+
 func (s *grpcServer) GetAccounts(ctx context.Context, r *pb.GetAccountsRequest) (*pb.GetAccountsRequest, error) {
 		a, err := s.service.GetAccounts(ctx, r.Id)
 	if err != nil {
 		return nil,err
 	}
-	return &pb.{}, nil
+	return &pb.GetAccountsRequest{
+		Accounts:}, nil
 }
