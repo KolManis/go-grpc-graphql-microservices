@@ -2,8 +2,9 @@ package main
 
 import (
 	"log"
-	"retry"
 	"time"
+
+	"github.com/tinrab/retry"
 
 	"github.com/KolManis/go-grpc-graphql-microservices/account"
 	"github.com/kelseyhightower/envconfig"

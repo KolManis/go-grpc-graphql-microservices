@@ -26,7 +26,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer s.Close()
 
 	http.Handle("/graphql", handler.New(s.ToExecutableSchema()))
 	http.Handle("/playgroung", playground.Handler("KolManis", "/graphql"))
