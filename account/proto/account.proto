@@ -1,7 +1,8 @@
 syntax = "proto3";
 
 package pb;
-//protoc --go_out=. --go-grpc_out=. proto/account.proto
+option go_package = "/pb";
+//protoc --proto_path=proto --go_out=. --go-grpc_out=. proto/account.proto  Исправил!!!
 message Account {
     string id = 1;
     string name = 2;

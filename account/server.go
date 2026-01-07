@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/KolManis/go-grpc-graphql-microservices/account"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -51,10 +52,18 @@ func (s *grpcServer) GetAccount(ctx context.Context, r *pb.GetAccountRequest) (*
 }
 
 func (s *grpcServer) GetAccounts(ctx context.Context, r *pb.GetAccountsRequest) (*pb.GetAccountsRequest, error) {
-		a, err := s.service.GetAccounts(ctx, r.Id)
+	res, err := s.service.GetAccounts(ctx, r.Id)
 	if err != nil {
 		return nil,err
 	}
-	return &pb.GetAccountsRequest{
-		Accounts:}, nil
+	accounts := []*pb.Account{}
+	for _, p := range res {
+		accounts = append(accounts, 
+			&pb.Account{
+				Id: p.ID,
+				Name: p.Name,
+			},
+		)
+	}
+	return &pb.GetAccountsRequest{Accounts: accounts}, nil
 }

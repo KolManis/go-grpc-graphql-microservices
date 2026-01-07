@@ -83,13 +83,12 @@ func (r *postgrersRepository) ListAccounts(ctx context.Context, skip uint64, tak
 	}
 	defer rows.Close()
 
-	accounts := make([]*Account, 0, take)
+	accounts := make([]Account, 0, take)
 	for rows.Next() {
 		a := &Account{}
-		if err := rows.Scan(&a.ID, &a.Name); err != nil {
-			return nil, err
+		if err := rows.Scan(&a.ID, &a.Name); err == nil {
+			accounts = append(accounts, *a)
 		}
-		accounts = append(accounts, *a)
 	}
 
 	if err := rows.Err(); err != nil {
