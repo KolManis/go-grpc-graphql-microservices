@@ -55,69 +55,73 @@ func (r *elasticRepository) PutProduct(ctx context.Context, p Product) error {
 		Type("product").
 		Id(p.ID).
 		BodyJson(ProductDocument{
-			Name: p.Name,
+			Name:        p.Name,
 			Description: p.Description,
-			Price: p.Price,
+			Price:       p.Price,
 		}).
 		Do(ctx)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 func (r *elasticRepository) GetProductByID(ctx context.Context, id string) (*Product, error) {
 	res, err := r.client.Get().
-		Index("catalog").          // указываем индекс "catalog" (как таблицу в БД)
-		Type("product").		   // указываем тип документа "product" (в Elasticsearch v5)
+		Index("catalog"). // указываем индекс "catalog" (как таблицу в БД)
+		Type("product").  // указываем тип документа "product" (в Elasticsearch v5)
 		Id(id).
 		Do(ctx)
 
 	if err != nil {
 		return nil, err
 	}
-	if !res.Found{ 					//res.Found - булево поле, true если документ существует
-		return nii, ErrNotFound
+	if !res.Found { //res.Found - булево поле, true если документ существует
+		return nil, ErrNotFound
 	}
-									// *res.Source - это указатель на []byte с JSON данными документа
+	// *res.Source - это указатель на []byte с JSON данными документа
 	p := ProductDocument{}
 	if err = json.Unmarshal(*res.Source, &p); err != nil {
 		return nil, err
 	}
 	return &Product{
-		ID: id,
-		Name: p.Name,
-		Description:  p.Description,
-		Price: p.Price
+		ID:          id,
+		Name:        p.Name,
+		Description: p.Description,
+		Price:       p.Price,
 	}, nil
 }
 func (r *elasticRepository) ListsProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error) {
 	res, err := r.client.Search().
 		Index("catalog").
-		Type("product").				// Аналог SQL: SELECT * FROM catalog.product
+		Type("product"). // Аналог SQL: SELECT * FROM catalog.product
 		Query(elastic.NewMatchAllQuery()).
-		From(int(skip)).  				// Пропустить skip записей
-    	Size(int(take)).  				// Взять take записей
+		From(int(skip)). // Пропустить skip записей
+		Size(int(take)). // Взять take записей
 		Do(ctx)
 
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if res.TotalHits() == 0 {
-        return []Product{}, nil 
-    }
+		return []Product{}, nil
+	}
 
 	products := []Product{}
-	for _, hit := range res.Hits.Hits{
-		P := ProductDocument{
-			if err = json.Unmarshal(*hit.Source, &p); err == nil {
-				products = append(products, Product{
-					ID: hit.Id,
-					Name: p.Name,
-					Description:  p.Description,
-					Price: p.Price
-				})
-			}
+	for _, hit := range res.Hits.Hits {
+		p := ProductDocument{}
+		if err = json.Unmarshal(*hit.Source, &p); err == nil {
+			products = append(products, Product{
+				ID:          hit.Id,
+				Name:        p.Name,
+				Description: p.Description,
+				Price:       p.Price,
+			})
 		}
 	}
-	return products, nil  
+	return products, nil
 }
 
 func (r *elasticRepository) ListsProductsWithIDs(ctx context.Context, ids []string) ([]Product, error) {
@@ -141,13 +145,13 @@ func (r *elasticRepository) ListsProductsWithIDs(ctx context.Context, ids []stri
 	}
 	products := []Product{}
 	for _, doc := range res.Docs {
-		p:= ProductDocument{}
+		p := ProductDocument{}
 		if err = json.Unmarshal(*doc.Source, &p); err == nil {
 			products = append(products, Product{
-				ID: doc.Id,
-				Name: p.Name,
-				Description:  p.Description,
-				Price: p.Price
+				ID:          doc.Id,
+				Name:        p.Name,
+				Description: p.Description,
+				Price:       p.Price,
 			})
 		}
 	}
@@ -161,8 +165,8 @@ func (r *elasticRepository) SearchProducts(ctx context.Context, query string, sk
 
 	// MultiMatch с весами (name важнее description)
 	multiMatch := elastic.NewMultiMatchQuery(query, "name^3", "description").
-		Type("best_fields").      // Лучший результат из полей
-		Fuzziness("AUTO")         // Поиск с опечатками
+		Type("best_fields"). // Лучший результат из полей
+		Fuzziness("AUTO")    // Поиск с опечатками
 
 	res, err := r.client.Search().
 		Index("catalog").
@@ -170,7 +174,7 @@ func (r *elasticRepository) SearchProducts(ctx context.Context, query string, sk
 		Query(multiMatch).
 		From(int(skip)).
 		Size(int(take)).
-		Sort("_score", false).    // Сортировка по релевантности
+		Sort("_score", false). // Сортировка по релевантности
 		Do(ctx)
 
 	if err != nil {
