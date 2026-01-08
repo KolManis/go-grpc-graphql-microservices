@@ -7,11 +7,12 @@
 package pb
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -286,7 +287,7 @@ type GetProductsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Skip          uint64                 `protobuf:"varint,1,opt,name=skip,proto3" json:"skip,omitempty"`
 	Take          uint64                 `protobuf:"varint,2,opt,name=take,proto3" json:"take,omitempty"`
-	Id            []string               `protobuf:"bytes,3,rep,name=id,proto3" json:"id,omitempty"`
+	Ids           []string               `protobuf:"bytes,3,rep,name=ids,proto3" json:"ids,omitempty"`
 	Query         string                 `protobuf:"bytes,4,opt,name=query,proto3" json:"query,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -336,9 +337,9 @@ func (x *GetProductsRequest) GetTake() uint64 {
 	return 0
 }
 
-func (x *GetProductsRequest) GetId() []string {
+func (x *GetProductsRequest) GetIds() []string {
 	if x != nil {
-		return x.Id
+		return x.Ids
 	}
 	return nil
 }
@@ -413,11 +414,11 @@ const file_catalog_proto_rawDesc = "" +
 	"\x11GetProductRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\";\n" +
 	"\x12GetProductResponse\x12%\n" +
-	"\aproduct\x18\x01 \x01(\v2\v.pb.ProductR\aproduct\"b\n" +
+	"\aproduct\x18\x01 \x01(\v2\v.pb.ProductR\aproduct\"d\n" +
 	"\x12GetProductsRequest\x12\x12\n" +
 	"\x04skip\x18\x01 \x01(\x04R\x04skip\x12\x12\n" +
-	"\x04take\x18\x02 \x01(\x04R\x04take\x12\x0e\n" +
-	"\x02id\x18\x03 \x03(\tR\x02id\x12\x14\n" +
+	"\x04take\x18\x02 \x01(\x04R\x04take\x12\x10\n" +
+	"\x03ids\x18\x03 \x03(\tR\x03ids\x12\x14\n" +
 	"\x05query\x18\x04 \x01(\tR\x05query\">\n" +
 	"\x13GetProductsResponse\x12'\n" +
 	"\bproducts\x18\x01 \x03(\v2\v.pb.ProductR\bproducts2\xd3\x01\n" +
