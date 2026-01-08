@@ -142,7 +142,7 @@ func (r *elasticRepository) ListsProductsWithIDs(ctx context.Context, ids []stri
 	products := []Product{}
 	for _, doc := range res.Docs {
 		p:= ProductDocument{}
-		if err = json.Unmarshal(*doc.Sourse, &p); err == nil {
+		if err = json.Unmarshal(*doc.Source, &p); err == nil {
 			products = append(products, Product{
 				ID: doc.Id,
 				Name: p.Name,
@@ -155,4 +155,27 @@ func (r *elasticRepository) ListsProductsWithIDs(ctx context.Context, ids []stri
 }
 
 func (r *elasticRepository) SearchPrducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error) {
+	res, err := r.client.Search().
+		Index("catalog").
+		Type("product").
+		Query(elastic.NewMultiMatchQuery(query, "name", "description")).
+		From(int(skip)).Size(int(take)).
+		Do(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	products := []Product{}
+	for _, hit := range res.Hits.Hits {
+		p := productDocument{}
+		if err = json.Unmarshal(*hit.Source, &p); err == nil {
+			products = append(products, Product{
+				ID:          hit.Id,
+				Name:        p.Name,
+				Description: p.Description,
+				Price:       p.Price,
+			})
+		}
+	}
+	return products, err
 }
