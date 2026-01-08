@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 
 	elastic "gopkg.in/olivere/elastic.v5"
 )
@@ -87,9 +88,9 @@ func (r *elasticRepository) GetProductByID(ctx context.Context, id string) (*Pro
 	}, nil
 }
 func (r *elasticRepository) ListsProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error) {
-	res. err := r.clinet.Search().
+	res, err := r.client.Search().
 		Index("catalog").
-		Type("product").
+		Type("product").				// Аналог SQL: SELECT * FROM catalog.product
 		Query(elastic.NewMatchAllQuery()).
 		From(int(skip)).  				// Пропустить skip записей
     	Size(int(take)).  				// Взять take записей
@@ -98,17 +99,17 @@ func (r *elasticRepository) ListsProducts(ctx context.Context, skip uint64, take
 	if err != nil {
 		return nil, err
 	}
-
-	if !res.Found{ 					
-		return nii, ErrNotFound
-	}
+	
+	if res.TotalHits() == 0 {
+        return []Product{}, nil 
+    }
 
 	products := []Product{}
 	for _, hit := range res.Hits.Hits{
 		P := ProductDocument{
-			if err = json.Unmarshal(*hit, &p); err == nil {
+			if err = json.Unmarshal(*hit.Source, &p); err == nil {
 				products = append(products, Product{
-					ID: hit.id,
+					ID: hit.Id,
 					Name: p.Name,
 					Description:  p.Description,
 					Price: p.Price
@@ -118,7 +119,40 @@ func (r *elasticRepository) ListsProducts(ctx context.Context, skip uint64, take
 	}
 	return products, nil  
 }
+
 func (r *elasticRepository) ListsProductsWithIDs(ctx context.Context, ids []string) ([]Product, error) {
+	items := []*elastic.MultiGetItem{}
+	for _, id := range ids {
+		items = append(
+			items,
+			elastic.NewMultiGetItem().
+				Index("catalog").
+				Type("product").
+				Id(id),
+		)
+	}
+	//    MultiGet() = аналог SELECT * FROM products WHERE id IN (...)
+	res, err := r.client.MultiGet().
+		Add(items...).
+		Do(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	products := []Product{}
+	for _, doc := range res.Docs {
+		p:= ProductDocument{}
+		if err = json.Unmarshal(*doc.Sourse, &p); err == nil {
+			products = append(products, Product{
+				ID: doc.Id,
+				Name: p.Name,
+				Description:  p.Description,
+				Price: p.Price
+			})
+		}
+	}
+	return products, nil
 }
+
 func (r *elasticRepository) SearchPrducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error) {
 }
