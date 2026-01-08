@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package pb;
 option go_package = "/pb";
-//protoc --proto_path=proto --go_out=. --go-grpc_out=. proto/acatalog.proto
+//protoc --proto_path=proto --go_out=. --go-grpc_out=. proto/catalog.proto
 message Product {
     string id = 1;
     string name = 2;
