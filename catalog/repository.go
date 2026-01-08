@@ -50,7 +50,7 @@ func (r *elasticRepository) Close() {
 }
 
 func (r *elasticRepository) PutProduct(ctx context.Context, p Product) error {
-	_ err := r.client.Index().
+	_, err := r.client.Index().
 		Index("catalog").
 		Type("product").
 		Id(p.ID).
