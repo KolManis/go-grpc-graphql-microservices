@@ -19,7 +19,7 @@ type Repository interface {
 	GetProductByID(ctx context.Context, id string) (*Product, error)
 	ListsProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error)
 	ListsProductsWithIDs(ctx context.Context, ids []string) ([]Product, error)
-	SearchPrducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error)
+	SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error)
 }
 
 type elasticRepository struct {
@@ -154,7 +154,7 @@ func (r *elasticRepository) ListsProductsWithIDs(ctx context.Context, ids []stri
 	return products, nil
 }
 
-func (r *elasticRepository) SearchPrducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error) {
+func (r *elasticRepository) SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error) {
 	if query == "" {
 		return []Product{}, nil
 	}

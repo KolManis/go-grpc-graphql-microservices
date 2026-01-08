@@ -11,7 +11,7 @@ type Service interface {
 	GetProductByID(ctx context.Context, id string) (*Product, error)
 	GetProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error)
 	GetProductsWithIDs(ctx context.Context, ids []string) ([]Product, error)
-	SearchPrducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error)
+	SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error)
 }
 
 type Product struct {
@@ -47,13 +47,19 @@ func (s *catalogService) GetProductByID(ctx context.Context, id string) (*Produc
 }
 
 func (s *catalogService) GetProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error) {
-
+	if take > 100 || (skip == 0 && take == 0) {
+		take = 100
+	}
+	return s.repository.ListsProducts(ctx, skip, take)
 }
 
 func (s *catalogService) GetProductsWithIDs(ctx context.Context, ids []string) ([]Product, error) {
-
+	return s.repository.ListsProductsWithIDs(ctx, ids)
 }
 
 func (s *catalogService) SearchPrducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error) {
-
+	if take > 100 || (skip == 0 && take == 0) {
+		take = 100
+	}
+	return s.repository.SearchProducts(ctx, query, skip, take)
 }
