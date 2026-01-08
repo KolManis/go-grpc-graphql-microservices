@@ -155,20 +155,32 @@ func (r *elasticRepository) ListsProductsWithIDs(ctx context.Context, ids []stri
 }
 
 func (r *elasticRepository) SearchPrducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error) {
+	if query == "" {
+		return []Product{}, nil
+	}
+
+	// MultiMatch с весами (name важнее description)
+	multiMatch := elastic.NewMultiMatchQuery(query, "name^3", "description").
+		Type("best_fields").      // Лучший результат из полей
+		Fuzziness("AUTO")         // Поиск с опечатками
+
 	res, err := r.client.Search().
 		Index("catalog").
 		Type("product").
-		Query(elastic.NewMultiMatchQuery(query, "name", "description")).
-		From(int(skip)).Size(int(take)).
+		Query(multiMatch).
+		From(int(skip)).
+		Size(int(take)).
+		Sort("_score", false).    // Сортировка по релевантности
 		Do(ctx)
+
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	products := []Product{}
+	products := make([]Product, 0, len(res.Hits.Hits))
 	for _, hit := range res.Hits.Hits {
-		p := productDocument{}
-		if err = json.Unmarshal(*hit.Source, &p); err == nil {
+		var p ProductDocument
+		if err := json.Unmarshal(*hit.Source, &p); err == nil {
 			products = append(products, Product{
 				ID:          hit.Id,
 				Name:        p.Name,
@@ -177,5 +189,5 @@ func (r *elasticRepository) SearchPrducts(ctx context.Context, query string, ski
 			})
 		}
 	}
-	return products, err
+	return products, nil
 }
