@@ -57,7 +57,7 @@ func (s *catalogService) GetProductsWithIDs(ctx context.Context, ids []string) (
 	return s.repository.ListsProductsWithIDs(ctx, ids)
 }
 
-func (s *catalogService) SearchPrducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error) {
+func (s *catalogService) SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error) {
 	if take > 100 || (skip == 0 && take == 0) {
 		take = 100
 	}
