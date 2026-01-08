@@ -43,7 +43,11 @@ func (s *catalogService) PostProduct(ctx context.Context, name, description stri
 }
 
 func (s *catalogService) GetProductByID(ctx context.Context, id string) (*Product, error) {
-
+	p, err := s.repository.GetProductByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
 }
 
 func (s *catalogService) GetProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error) {
