@@ -3,11 +3,11 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /go/bin/account-service ./account/cmd/account
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /go/bin/catalog-service ./catalog/cmd/catalog
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /root/
-COPY --from=builder /go/bin/account-service .
+COPY --from=builder /go/bin/catalog-service .
 EXPOSE 8080
-CMD ["./account-service"]
+CMD ["./catalog-service"]
