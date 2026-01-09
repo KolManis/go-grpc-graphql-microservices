@@ -7,7 +7,7 @@ import (
 	"github.com/lib/pq"
 )
 
-type Repositoty interface {
+type Repository interface {
 	Close()
 	PutOrder(ctx context.Context, o Order) error
 	GetOrdersForAccount(ctx context.Context, accountId string) ([]Order, error)
@@ -21,7 +21,7 @@ func (r *postgresRepository) Close() {
 	r.db.Close()
 }
 
-func NewPostgresRepository(url string) (Repositoty, error) {
+func NewPostgresRepository(url string) (Repository, error) {
 	db, err := sql.Open("postgres", url)
 	if err != nil {
 		return nil, err
