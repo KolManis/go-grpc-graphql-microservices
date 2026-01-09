@@ -4,10 +4,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/tinrab/retry"
-
 	"github.com/KolManis/go-grpc-graphql-microservices/account"
 	"github.com/kelseyhightower/envconfig"
+	_ "github.com/lib/pq"
+	"github.com/tinrab/retry"
 )
 
 type Config struct {
