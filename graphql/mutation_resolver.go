@@ -18,7 +18,7 @@ type mutationResolver struct {
 }
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, in AccountInput) (*Account, error) {
-	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
 	a, err := r.server.accountClient.PostAccount(ctx, in.Name)
@@ -34,7 +34,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, in AccountInput) (
 }
 
 func (r *mutationResolver) CreateProduct(ctx context.Context, in ProductInput) (*Product, error) {
-	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
 	p, err := r.server.catalogClient.PostProduct(ctx, in.Name, in.Description, in.Price)
@@ -52,7 +52,7 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, in ProductInput) (
 }
 
 func (r *mutationResolver) CreateOrder(ctx context.Context, in OrderInput) (*Order, error) {
-	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 45*time.Second)
 	defer cancel()
 
 	var products []order.OrderedProduct

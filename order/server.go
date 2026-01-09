@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time" // ДОБАВИТЬ ЭТОТ ИМПОРТ
 
 	"github.com/KolManis/go-grpc-graphql-microservices/account"
 	"github.com/KolManis/go-grpc-graphql-microservices/catalog"
 	"github.com/KolManis/go-grpc-graphql-microservices/order/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -39,7 +41,9 @@ func ListenGRPC(s Service, accountURL, catalogURL string, port int) error {
 		catalogClient.Close()
 		return err
 	}
-	serv := grpc.NewServer()
+	serv := grpc.NewServer(
+		grpc.Creds(insecure.NewCredentials()),
+	)
 	pb.RegisterOrderServiceServer(serv,
 		&grpcServer{
 			s,
@@ -63,7 +67,11 @@ func (s *grpcServer) PostOrder(
 	ctx context.Context,
 	r *pb.PostOrderRequest,
 ) (*pb.PostOrderResponse, error) {
-	_, err := s.accountClient.GetAccount(ctx, r.AccountId)
+	// СОЗДАЕМ НОВЫЙ КОНТЕКСТ ДЛЯ ACCOUNT
+	accountCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	_, err := s.accountClient.GetAccount(accountCtx, r.AccountId) // Используем accountCtx вместо ctx
 	if err != nil {
 		log.Println("Error getting account: ", err)
 		return nil, errors.New("account not found")
@@ -74,7 +82,11 @@ func (s *grpcServer) PostOrder(
 		productIDs = append(productIDs, p.ProductId)
 	}
 
-	orderedProducts, err := s.catalogClient.GetProducts(ctx, 0, 0, productIDs, "")
+	// СОЗДАЕМ НОВЫЙ КОНТЕКСТ ДЛЯ CATALOG
+	catalogCtx, catalogCancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer catalogCancel()
+
+	orderedProducts, err := s.catalogClient.GetProducts(catalogCtx, 0, 0, productIDs, "") // Используем catalogCtx вместо ctx
 	if err != nil {
 		log.Println("Error getting products: ", err)
 		return nil, errors.New("products not found")
@@ -150,7 +162,12 @@ func (s *grpcServer) GetOrdersForAccount(
 	for id := range productIDMap {
 		productIDs = append(productIDs, id)
 	}
-	products, err := s.catalogClient.GetProducts(ctx, 0, 0, productIDs, "")
+
+	// СОЗДАЕМ НОВЫЙ КОНТЕКСТ ДЛЯ CATALOG
+	catalogCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	products, err := s.catalogClient.GetProducts(catalogCtx, 0, 0, productIDs, "") // Используем catalogCtx вместо ctx
 	if err != nil {
 		log.Println("Error gettong accpunt products: ", err)
 		return nil, err

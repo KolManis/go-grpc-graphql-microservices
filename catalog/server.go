@@ -8,6 +8,7 @@ import (
 
 	"github.com/KolManis/go-grpc-graphql-microservices/catalog/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -21,7 +22,9 @@ func ListenGRPC(s Service, port int) error {
 	if err != nil {
 		return err
 	}
-	serv := grpc.NewServer()
+	serv := grpc.NewServer(
+		grpc.Creds(insecure.NewCredentials()),
+	)
 	pb.RegisterCatalogServiceServer(serv, &grpcServer{service: s})
 	reflection.Register(serv)
 	return serv.Serve(lis)

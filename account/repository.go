@@ -74,7 +74,7 @@ func (r *postgrersRepository) GetAccountByID(ctx context.Context, id string) (*A
 func (r *postgrersRepository) ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error) {
 	rows, err := r.db.QueryContext(
 		ctx,
-		"SELECT id, name FROM accounts ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+		"SELECT id, name FROM accounts ORDER BY id DESC LIMIT $1 OFFSET $2",
 		take,
 		skip,
 	)
