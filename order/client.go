@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/KolManis/go-grpc-graphql-microservices/order/pb"
@@ -10,7 +11,7 @@ import (
 )
 
 type Client struct {
-	conn    grpc.ClientConn
+	conn    *grpc.ClientConn
 	service pb.OrderServiceClient
 }
 
@@ -32,14 +33,19 @@ func (c *Client) Close() {
 	c.conn.Close()
 }
 
+// Конвертирует локальные структуры OrderedProduct в protobuf формат
+// Вызывает gRPC метод PostOrder на сервере
+// Конвертирует ответ сервера обратно в локальную структуру Order
+// Парсит бинарное представление времени создания заказа
 func (c *Client) PostOrder(ctx context.Context, accountID string, products []OrderedProduct) (*Order, error) {
 	protoProducts := []*pb.PostOrderRequest_OrderProduct{}
 	for _, p := range products {
-		protoProducts := append(protoProducts, &pb.PostOrderRequest_OrderProduct{
+		protoProducts = append(protoProducts, &pb.PostOrderRequest_OrderProduct{
 			ProductId: p.ID,
 			Quantity:  p.Quantity,
 		})
 	}
+
 	r, err := c.service.PostOrder(
 		ctx,
 		&pb.PostOrderRequest{
@@ -64,6 +70,40 @@ func (c *Client) PostOrder(ctx context.Context, accountID string, products []Ord
 	}, nil
 }
 
-func (c *Client) GetOrdersForAccount(ctx context.Context, r *pb.GetOrdersForAccountRequest, opts ...grpc.CallOption) ([]Order, error) {
-	return
+func (c *Client) GetOrdersForAccount(ctx context.Context, accountID string) ([]Order, error) {
+	r, err := c.service.GetOrdersForAccount(
+		ctx,
+		&pb.GetOrdersForAccountRequest{
+			AccountId: accountID,
+		},
+	)
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	orders := []Order{}
+	for _, orderProto := range r.Orders {
+		newOrder := Order{
+			ID:         orderProto.Id,
+			TotalPrice: orderProto.TotalPrice,
+			AccountID:  orderProto.AccountId,
+		}
+		newOrder.CreatedAt = time.Time{}
+		newOrder.CreatedAt.UnmarshalBinary(orderProto.CreatedAt)
+		products := []OrderedProduct{}
+		for _, p := range orderProto.Products {
+			products = append(products, OrderedProduct{
+				ID:          p.Id,
+				Name:        p.Name,
+				Quantity:    p.Quantity,
+				Description: p.Description,
+				Price:       p.Price,
+			})
+		}
+		newOrder.Products = products
+		orders = append(orders, newOrder)
+	}
+	return orders, nil
 }
