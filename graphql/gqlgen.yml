@@ -1,4 +1,3 @@
-# go run github.com/99designs/gqlgen generate      
 schema: schema.graphql
 
 models:
@@ -6,4 +5,4 @@ models:
     model: github.com/KolManis/go-grpc-graphql-microservices/graphql.Account
     fields:
       orders:
-        resolver: true 
+        resolver: true

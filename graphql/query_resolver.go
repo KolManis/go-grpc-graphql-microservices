@@ -14,6 +14,7 @@ func (r *queryResolver) Accounts(ctx context.Context, pagination *PaginationInpu
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
+	// Get single
 	if id != nil {
 		r, err := r.server.accountClient.GetAccount(ctx, *id)
 		if err != nil {
@@ -48,23 +49,11 @@ func (r *queryResolver) Accounts(ctx context.Context, pagination *PaginationInpu
 
 	return accounts, nil
 }
-
-func (p PaginationInput) bounds() (uint64, uint64) {
-	skipValue := uint64(0)
-	takeValue := uint64(100)
-	if p.Skip != nil {
-		skipValue = uint64(*p.Skip)
-	}
-	if p.Take != nil {
-		takeValue = uint64(*p.Take)
-	}
-	return skipValue, takeValue
-}
-
 func (r *queryResolver) Products(ctx context.Context, pagination *PaginationInput, query *string, id *string) ([]*Product, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
+	// Get single
 	if id != nil {
 		r, err := r.server.catalogClient.GetProduct(ctx, *id)
 		if err != nil {
@@ -107,4 +96,16 @@ func (r *queryResolver) Products(ctx context.Context, pagination *PaginationInpu
 	}
 
 	return products, nil
+}
+
+func (p PaginationInput) bounds() (uint64, uint64) {
+	skipValue := uint64(0)
+	takeValue := uint64(100)
+	if p.Skip != nil {
+		skipValue = uint64(*p.Skip)
+	}
+	if p.Take != nil {
+		takeValue = uint64(*p.Take)
+	}
+	return skipValue, takeValue
 }
